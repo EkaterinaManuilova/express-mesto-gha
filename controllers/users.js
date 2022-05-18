@@ -24,7 +24,7 @@ module.exports.createUser = (req, res) => {
     return res.status(400).send({ message: 'Переданы некорректные данные' });
   }
 
-  if (name.length < 2 || name.length > 30) {
+  if (name.length < 2 || name.length > 30 || about.length < 2 || about.length > 30) {
     return res.status(400).send({ message: 'Переданы некорректные данные' });
   }
 
