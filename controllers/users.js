@@ -24,8 +24,12 @@ module.exports.createUser = (req, res) => {
     return res.status(400).send({ message: 'Переданы некорректные данные' });
   }
 
+  if (name.length < 2) {
+    return res.status(400).send({ message: 'Переданы некорректные данные' });
+  }
+
   User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.code === 11000) {
         return res.status(409).send({ message: 'Такой пользователь уже существует' });
