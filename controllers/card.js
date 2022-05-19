@@ -7,6 +7,10 @@ module.exports.createCard = (req, res) => {
     return res.status(400).send({ message: 'Переданы некорректные данные' });
   }
 
+  if (name.length < 2 || name.length > 30 || link.length < 2 || link.length > 30) {
+    return res.status(400).send({ message: 'Переданы некорректные данные' });
+  }
+
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
       res.status(201).send({ data: card });
@@ -24,7 +28,14 @@ module.exports.getCards = (_, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Карточка не найдена' });
+      }
+
+      res.send({ data: card });
+    })
+    .catch(() => res.status(400).send({ message: 'Переданы некорректные данные' }))
     .catch((err) => res.send({ message: err.message }))
     .catch(() => res.status(500).send({ message: 'Ошибка' }));
 };
@@ -41,6 +52,7 @@ module.exports.likeCard = (req, res) => {
       }
       res.send({ data: card });
     })
+    .catch(() => res.status(400).send({ message: 'Переданы некорректные данные' }))
     .catch((err) => res.send({ message: err.message }))
     .catch(() => res.status(500).send({ message: 'Ошибка' }));
 };
@@ -57,6 +69,7 @@ module.exports.dislikeCard = (req, res) => {
       }
       res.send({ data: card });
     })
+    .catch(() => res.status(400).send({ message: 'Переданы некорректные данные' }))
     .catch((err) => res.send({ message: err.message }))
     .catch(() => res.status(500).send({ message: 'Ошибка' }));
 };

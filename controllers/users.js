@@ -6,15 +6,16 @@ module.exports.getUsers = (req, res) => {
     .catch(() => res.status(500).send({ message: 'Ошибка' }));
 };
 
-module.exports.getUser = (req, res, next) => {
+module.exports.getUser = (req, res) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: 'Пользователь не найден' });
       }
+
       res.status(200).send(user);
     })
-    .catch(next)
+    .catch(() => res.status(400).send({ message: 'Переданы некорректные данные' }))
     .catch(() => res.status(500).send({ message: 'Ошибка' }));
 };
 
