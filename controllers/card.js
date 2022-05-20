@@ -19,7 +19,6 @@ module.exports.createCard = (req, res) => {
 module.exports.getCards = (_, res) => {
   Card.find({})
     .then((cards) => res.send(cards))
-    .catch((err) => res.send({ message: err.message }))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
