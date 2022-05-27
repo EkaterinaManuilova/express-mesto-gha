@@ -10,9 +10,7 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports.getUsers = (_, res, next) => {
   User.find({})
-    .then((users) => {
-      res.status(200).send(users);
-    })
+    .then((users) => res.status(200).send(users))
     .catch(next);
 };
 
@@ -62,7 +60,7 @@ module.exports.createUser = (req, res, next) => {
       }
     })
     .then((user) => res.status(201).send({
-      name: user.name, about: user.about, avatar: user.avatar, email: user.email,
+      name: user.name, about: user.about, avatar: user.avatar, email: user.email, id: user._id,
     }))
     .catch(next);
 };
