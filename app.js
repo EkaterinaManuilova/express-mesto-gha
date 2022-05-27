@@ -1,25 +1,67 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+require('dotenv').config();
+
+const { celebrate, Joi, errors } = require('celebrate');
+
+const { createUser, login } = require('./controllers/users');
+const auth = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
 const app = express();
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+
+app.use(limiter);
+
+app.use(helmet());
+
+app.use(cookieParser());
 
 app.use(express.json());
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-app.use((req, _, next) => {
-  req.user = {
-    _id: '6284cd8a4cbf7c5bebf1f0a3',
-  };
-  next();
-});
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email({ minDomainSegments: 2 }),
+    password: Joi.string().required().min(8),
+  }),
+}), createUser);
 
-app.use('/users', require('./routes/users'));
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email({ minDomainSegments: 2 }),
+    password: Joi.string().required().min(8),
+  }),
+}), login);
 
-app.use('/cards', require('./routes/card'));
+app.use('/users', auth, require('./routes/users'));
+
+app.use('/cards', auth, require('./routes/card'));
 
 app.all('*', (_, res) => res.status(404).send({ message: 'Страница не  найдена' }));
+
+app.use(errors());
+
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
+  next();
+});
 
 app.listen(PORT, () => {
   console.log('Server started');
