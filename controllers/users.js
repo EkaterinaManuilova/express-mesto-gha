@@ -60,9 +60,7 @@ module.exports.createUser = (req, res, next) => {
       }
     })
     .then((user) => res.status(201).send({
-      data: {
-        name: user.name, about: user.about, avatar: user.avatar, email: user.email,
-      },
+      name: user.name, about: user.about, avatar: user.avatar, email: user.email,
     }))
     .catch(next);
 };
@@ -81,7 +79,10 @@ module.exports.updateUser = (req, res, next) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));
       }
-      res.send({ data: user });
+      res.send({
+        name: user.name,
+        about: user.about,
+      });
     })
     .catch(() => {
       next(new CastError('Переданы некорректные данные'));
@@ -103,7 +104,9 @@ module.exports.updateAvatar = (req, res, next) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));
       }
-      res.send({ data: user });
+      res.send({
+        avatar: user.avatar,
+      });
     })
     .catch(() => {
       next(new CastError('Переданы некорректные данные'));

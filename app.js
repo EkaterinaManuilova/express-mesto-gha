@@ -31,6 +31,9 @@ mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.post('/signup', celebrate({
   body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().regex(/https?:\/\/(www\.)?[-a-zA-z0-9@:%_\\+.~#?&=]+\.[a-zA-Z0-9()]+([-a-zA-Z0-9()@:%_\\+.~#?&=]*)/),
     email: Joi.string().required().email({ minDomainSegments: 2 }),
     password: Joi.string().required().min(8),
   }),
