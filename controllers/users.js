@@ -10,7 +10,9 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports.getUsers = (_, res, next) => {
   User.find({})
-    .then((users) => res.send({ data: users }))
+    .then((users) => {
+      res.status(200).send(users);
+    })
     .catch(next);
 };
 
@@ -20,7 +22,7 @@ module.exports.getMe = (req, res, next) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));
       }
-      res.status(200).send(user);
+      return res.status(200).send(user);
     })
     .catch(() => {
       next(new CastError('Невалидный id'));
@@ -34,11 +36,11 @@ module.exports.getUser = (req, res, next) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));
       }
-      res.status(200).send(user);
+      return res.status(200).send(user);
     })
-    .catch(() => {
-      next(new CastError('Невалидный id'));
-    })
+    // .catch(() => {
+    //   next(new CastError('Невалидный id'));
+    // })
     .catch(next);
 };
 
@@ -79,7 +81,7 @@ module.exports.updateUser = (req, res, next) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));
       }
-      res.send({
+      res.status(200).send({
         name: user.name,
         about: user.about,
       });
@@ -104,7 +106,7 @@ module.exports.updateAvatar = (req, res, next) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));
       }
-      res.send({
+      res.status(200).send({
         avatar: user.avatar,
       });
     })

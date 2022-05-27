@@ -8,7 +8,7 @@ module.exports.createCard = (req, res, next) => {
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
-      res.status(201).send({ data: card });
+      res.status(201).send(card);
     })
     .catch(() => {
       next(new CastError('Переданы некорректные данные'));
@@ -18,21 +18,21 @@ module.exports.createCard = (req, res, next) => {
 
 module.exports.getCards = (_, res, next) => {
   Card.find({})
-    .then((cards) => res.send(cards))
+    .then((cards) => res.status(200).send(cards))
     .catch(next);
 };
 
 module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .then((card) => {
+    .then(async (card) => {
       if (!card) {
         next(new NotFoundError('Карточка не найдена'));
       }
       if (req.user._id === !card.owner) {
-        next(new ForbiddenError('Не достаточно прав'));
+        next(new ForbiddenError('Не достаточно прав для совершения действия'));
       }
-      return Card.findByIdAndRemove(req.params.cardId)
-        .then((cardItem) => res.send({ data: cardItem, message: 'Карточка  удалена' }));
+      const cardItem = await Card.findByIdAndRemove(req.params.cardId);
+      return res.status(200).send({ data: cardItem, message: 'Карточка  удалена' });
     })
     .catch(() => {
       next(new CastError('Невалидный id'));
@@ -50,7 +50,7 @@ module.exports.likeCard = (req, res, next) => {
       if (!card) {
         next(new NotFoundError('Карточка не найдена'));
       }
-      res.send({ data: card, likes: card.likes.length });
+      res.status(200).send({ card, likes: card.likes.length });
     })
     .catch(() => {
       next(new CastError('Невалидный id'));
@@ -68,7 +68,7 @@ module.exports.dislikeCard = (req, res, next) => {
       if (!card) {
         next(new NotFoundError('Карточка не найдена'));
       }
-      res.send({ data: card, likes: card.likes.length });
+      res.status(200).send({ card, likes: card.likes.length });
     })
     .catch(() => {
       next(new CastError('Невалидный id'));
