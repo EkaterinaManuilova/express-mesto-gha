@@ -15,7 +15,7 @@ const extractBearerToken = (header) => {
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    return handleAuthError(res);
+    return handleAuthError(next);
   }
 
   const token = req.cookies.jwt || extractBearerToken(authorization);
@@ -24,7 +24,7 @@ module.exports = (req, res, next) => {
   try {
     payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
   } catch (err) {
-    return handleAuthError(res);
+    return handleAuthError(next);
   }
 
   req.user = payload;

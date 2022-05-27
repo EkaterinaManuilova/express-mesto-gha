@@ -14,8 +14,8 @@ router.get('/', getUsers);
 router.get('/me', getMe);
 
 router.get('/:userId', celebrate({
-  body: Joi.object().keys({
-    id: Joi.string().required().length(24),
+  params: Joi.object().keys({
+    userId: Joi.string().required().length(24),
   }),
 }), getUser);
 
