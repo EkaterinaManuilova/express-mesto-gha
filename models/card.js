@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const regex = /https?:\/\/(www\.)?[-a-zA-z0-9@:%_\\+.~#?&=]+\.[a-zA-Z0-9()]+([-a-zA-Z0-9()@:%_\\+.~#?&=]*)/;
+const { reg } = require('../utils/constants');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -14,7 +14,7 @@ const cardSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator(v) {
-        return regex.test(v);
+        return reg.test(v);
       },
       message: 'Введите ссылку на изображение',
     },
@@ -26,6 +26,7 @@ const cardSchema = new mongoose.Schema({
   },
   likes: {
     type: Array,
+    default: [],
   },
   createdAt: {
     type: Date,

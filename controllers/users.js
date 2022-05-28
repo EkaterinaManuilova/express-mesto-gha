@@ -5,6 +5,7 @@ const NotFoundError = require('../errors/NotFoundError');
 const CastError = require('../errors/CastError');
 const ConflictError = require('../errors/ConflictError');
 const UnauthorizedError = require('../errors/UnauthorizedError');
+const ValidationError = require('../errors/ValidationError');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -18,28 +19,34 @@ module.exports.getMe = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Пользователь не найден'));
+        return next(new NotFoundError('Пользователь не найден'));
       }
       return res.status(200).send(user);
     })
-    .catch(() => {
-      next(new CastError('Невалидный id'));
-    })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new CastError('Невалидный id'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Пользователь не найден'));
+        return next(new NotFoundError('Пользователь не найден'));
       }
       return res.status(200).send(user);
     })
-    // .catch(() => {
-    //   next(new CastError('Невалидный id'));
-    // })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new CastError('Невалидный id'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.createUser = (req, res, next) => {
@@ -48,21 +55,22 @@ module.exports.createUser = (req, res, next) => {
   } = req.body;
 
   if (!email || !password) {
-    next(new CastError('Не передан email и/или пароль'));
+    return next(new CastError('Не передан email и/или пароль'));
   }
-  bcrypt.hash(password, 10)
+  return bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
+    }))
+    .then((user) => res.status(201).send({
+      name: user.name, about: user.about, avatar: user.avatar, email: user.email, id: user._id,
     }))
     .catch((err) => {
       if (err.code === 11000) {
         next(new ConflictError('Такой пользователь уже существует'));
+      } else {
+        next(err);
       }
-    })
-    .then((user) => res.status(201).send({
-      name: user.name, about: user.about, avatar: user.avatar, email: user.email, id: user._id,
-    }))
-    .catch(next);
+    });
 };
 
 module.exports.updateUser = (req, res, next) => {
@@ -77,17 +85,20 @@ module.exports.updateUser = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Пользователь не найден'));
+        return next(new NotFoundError('Пользователь не найден'));
       }
-      res.status(200).send({
+      return res.status(200).send({
         name: user.name,
         about: user.about,
       });
     })
-    .catch(() => {
-      next(new CastError('Переданы некорректные данные'));
-    })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Переданы некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.updateAvatar = (req, res, next) => {
@@ -102,16 +113,19 @@ module.exports.updateAvatar = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Пользователь не найден'));
+        return next(new NotFoundError('Пользователь не найден'));
       }
-      res.status(200).send({
+      return res.status(200).send({
         avatar: user.avatar,
       });
     })
-    .catch(() => {
-      next(new CastError('Переданы некорректные данные'));
-    })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Переданы некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.login = (req, res, next) => {
@@ -133,9 +147,5 @@ module.exports.login = (req, res, next) => {
     })
     .catch(() => {
       next(new UnauthorizedError('Не правильные почта или пароль'));
-    })
-    .catch(() => {
-      next(new CastError('Переданы некорректные данные'));
-    })
-    .catch(next);
+    });
 };

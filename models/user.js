@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 
-const regex = /https?:\/\/(www\.)?[-a-zA-z0-9@:%_\\+.~#?&=]+\.[a-zA-Z0-9()]+([-a-zA-Z0-9()@:%_\\+.~#?&=]*)/;
+const { reg } = require('../utils/constants');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator(v) {
-        return regex.test(v);
+        return reg.test(v);
       },
       message: 'Введите ссылку на изображение',
     },
@@ -36,7 +36,6 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     requred: true,
-    minlength: 8,
     select: false,
   },
 }, { versionKey: false });

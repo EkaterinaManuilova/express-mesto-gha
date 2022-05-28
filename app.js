@@ -10,6 +10,7 @@ const { celebrate, Joi, errors } = require('celebrate');
 
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const NotFoundError = require('./errors/NotFoundError');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -35,14 +36,14 @@ app.post('/signup', celebrate({
     about: Joi.string().min(2).max(30),
     avatar: Joi.string().regex(/https?:\/\/(www\.)?[-a-zA-z0-9@:%_\\+.~#?&=]+\.[a-zA-Z0-9()]+([-a-zA-Z0-9()@:%_\\+.~#?&=]*)/),
     email: Joi.string().required().email({ minDomainSegments: 2 }),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
   }),
 }), createUser);
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email({ minDomainSegments: 2 }),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
   }),
 }), login);
 
@@ -50,7 +51,9 @@ app.use('/users', auth, require('./routes/users'));
 
 app.use('/cards', auth, require('./routes/card'));
 
-app.all('*', (_, res) => res.status(404).send({ message: 'Страница не  найдена' }));
+app.all('*', auth, (req, res, next) => {
+  next(new NotFoundError('Страница не  найдена'));
+});
 
 app.use(errors());
 

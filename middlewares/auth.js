@@ -7,18 +7,12 @@ const handleAuthError = (next) => {
   next(new UnauthorizedError('Необходима авторизация'));
 };
 
-const extractBearerToken = (header) => {
-  header.replace('Bearer ', '');
-};
-
 // eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
-  const { authorization } = req.headers;
-  if (!authorization || !authorization.startsWith('Bearer ')) {
+  const token = req.cookies.jwt;
+  if (!token) {
     return handleAuthError(next);
   }
-
-  const token = req.cookies.jwt || extractBearerToken(authorization);
 
   let payload;
   try {
