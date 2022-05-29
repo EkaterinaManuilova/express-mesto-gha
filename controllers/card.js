@@ -10,7 +10,7 @@ module.exports.createCard = (req, res, next) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
       res.status(201).send({
-        name: card.name, link: card.link, owner: card.owner, cardId: card._id,
+        name: card.name, link: card.link, owner: card.owner, _id: card._id,
       });
     })
     .catch((err) => {
@@ -30,15 +30,15 @@ module.exports.getCards = (_, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .then(async (card) => {
+    .then((card) => {
       if (!card) {
         return next(new NotFoundError('Карточка не найдена'));
       }
       if (String(req.user._id) !== String(card.owner)) {
         return next(new ForbiddenError('Не достаточно прав для совершения действия'));
       }
-      const cardItem = await Card.findByIdAndRemove(req.params.cardId);
-      return res.status(200).send({ data: cardItem, message: 'Карточка  удалена' });
+      return Card.findByIdAndRemove(req.params.cardId)
+        .then((cardItem) => res.status(200).send({ data: cardItem, message: 'Карточка  удалена' }));
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -52,7 +52,7 @@ module.exports.deleteCard = (req, res, next) => {
 module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
+    { $addToSet: { likes: req.user._id } },
     { new: true },
   )
     .then((card) => {
@@ -73,7 +73,7 @@ module.exports.likeCard = (req, res, next) => {
 module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { $pull: { likes: req.user._id } },
     { new: true },
   )
     .then((card) => {
